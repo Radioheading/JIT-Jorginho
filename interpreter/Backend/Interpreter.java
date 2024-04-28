@@ -7,6 +7,7 @@ import llvmIR.Inst.*;
 import llvmIR.type.IRBaseType;
 import llvmIR.type.IRPtrType;
 import llvmIR.type.IRStructType;
+import Jorginho.JIT.FunctionCompiler;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -20,13 +21,14 @@ public class Interpreter implements IRVisitor {
 
     IRBaseInst curInst = null;
     IRBaseInst nextInst = null;
-    int retVal = 0;
+    FunctionCompiler functionCompiler = null;
 
     HashSet<VirtualMachine.StackFrame> hasVisited = new HashSet<>();
 
     public Interpreter(Program _irProgram, InputStream input, PrintStream output) {
         irProgram = _irProgram;
-        VM = new VirtualMachine(irProgram, input, output);
+        functionCompiler = new FunctionCompiler(irProgram);
+        VM = new VirtualMachine(irProgram, input, output, functionCompiler);
     }
 
     public void interpret() {
