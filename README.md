@@ -22,7 +22,7 @@ Jorginho is an Italian football player who has played for Chelsea FC and he is c
 
 So, why not check out this video about the fabulous performance of Jorginho?
 
-[The most sophisticated midfielder]([Jorginho the most Sophisticated Midfielder in the World !! (youtube.com)](https://www.youtube.com/watch?v=8R1Gas4DiBE))
+[The most sophisticated midfielder](https://www.youtube.com/watch?v=8R1Gas4DiBE)
 
 ![Jorginho](asset/Jorginho.png)
 
