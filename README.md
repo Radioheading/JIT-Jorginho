@@ -24,5 +24,5 @@ So, why not check out this video about the fabulous performance of Jorginho?
 
 [The most sophisticated midfielder](https://www.youtube.com/watch?v=8R1Gas4DiBE)
 
-![Jorginho](asset/Jorginho.png)
+![Jorginho](asset/Jorginho.jpg)
 
