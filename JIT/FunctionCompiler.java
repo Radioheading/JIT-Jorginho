@@ -9,6 +9,7 @@ import ASM.Instruction.LoadInst;
 import ASM.Operand.Imm;
 import Backend.GraphColoring;
 import Backend.InstSelector;
+import IROptimize.AllocElimination;
 import IROptimize.Utils.CFG;
 import IROptimize.Utils.CallGraphContruct;
 import llvmIR.Entity.IRGlobalVar;
@@ -22,6 +23,7 @@ import java.util.HashSet;
 public class FunctionCompiler {
     Program myProgram;
     CallGraphContruct callGraphContruct;
+    AllocElimination allocElimination;
     InstSelector instSelector = new InstSelector(new ASMProgram());
     GraphColoring graphColoring = new GraphColoring(new ASMProgram());
 
@@ -32,11 +34,12 @@ public class FunctionCompiler {
 
     String functionString;
 
-    public FunctionCompiler(Program myProgram) {
+    public FunctionCompiler(Program myProgram, AllocElimination allocElimination) {
         this.myProgram = myProgram;
         this.callGraphContruct = new CallGraphContruct(myProgram);
         new CFG(myProgram).buildCFG();
         callGraphContruct.work();
+        this.allocElimination = allocElimination;
 
         instSelector.init(myProgram);
     }
