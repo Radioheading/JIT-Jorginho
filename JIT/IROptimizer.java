@@ -12,8 +12,6 @@ import java.util.HashMap;
 public class IROptimizer {
     private Program myProgram;
     private final static int INLINE_THRESHOLD = 9;
-
-    private int currentLevel = 0;
     boolean serverMode = false;
     ADCE ADCE_optimizer;
     AllocElimination Mem2Reg_optimizer;
@@ -34,11 +32,14 @@ public class IROptimizer {
         init();
     }
 
-    public void updateLevel(Function function) {
-        if (level.get(function) + 1 > currentLevel && level.get(function) <= 2) {
+    public boolean updateLevel(Function function) {
+        if (level.get(level.get(function)) <= 2) {
             level.put(function, level.get(function) + 1);
             // do some optimizations
             optimizeFunction(function, level.get(function));
+            return true;
+        } else {
+            return false;
         }
     }
 

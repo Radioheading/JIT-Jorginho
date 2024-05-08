@@ -2,6 +2,7 @@ package Jorginho.interpreter.Backend;
 
 import ASM.Compound.ASMFunction;
 import Jorginho.JIT.FunctionCompiler;
+import llvmIR.BasicBlock;
 import llvmIR.Entity.*;
 import llvmIR.Function;
 import llvmIR.Inst.IRBaseInst;
@@ -30,6 +31,8 @@ public class VirtualMachine {
     int heap_cur = RAVEL_TEXT_SPACE;
     int[] registers = new int[32];
     FunctionCompiler functionCompiler;
+
+    BasicBlock lastBlock = null; // reserved for Phi instruction
 
     /*
      * for sake of simplicity, we don't simulate with text segment
@@ -426,5 +429,13 @@ public class VirtualMachine {
 //            }
 //        }
         return value;
+    }
+
+    public BasicBlock getLastBlock() {
+        return lastBlock;
+    }
+
+    public void setLastBlock(BasicBlock block) {
+        lastBlock = block;
     }
 }

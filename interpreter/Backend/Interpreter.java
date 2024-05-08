@@ -1,5 +1,8 @@
 package Jorginho.interpreter.Backend;
 
+import IROptimize.AllocElimination;
+import Jorginho.JIT.IROptimizer;
+import Jorginho.JIT.Profiler;
 import jdk.jfr.Unsigned;
 import llvmIR.Entity.*;
 import llvmIR.*;
@@ -9,6 +12,7 @@ import llvmIR.type.IRPtrType;
 import llvmIR.type.IRStructType;
 import Jorginho.JIT.FunctionCompiler;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -22,13 +26,15 @@ public class Interpreter implements IRVisitor {
     IRBaseInst curInst = null;
     IRBaseInst nextInst = null;
     FunctionCompiler functionCompiler = null;
+    Profiler profiler = null;
 
-    HashSet<VirtualMachine.StackFrame> hasVisited = new HashSet<>();
+    boolean interpret = false;
 
-    public Interpreter(Program _irProgram, InputStream input, PrintStream output) {
+    public Interpreter(Program _irProgram, InputStream input, PrintStream output, AllocElimination allocElimination, boolean serverMode) throws FileNotFoundException {
         irProgram = _irProgram;
-        functionCompiler = new FunctionCompiler(irProgram);
+        functionCompiler = new FunctionCompiler(irProgram, allocElimination);
         VM = new VirtualMachine(irProgram, input, output, functionCompiler);
+        profiler = new Profiler(irProgram, functionCompiler, new IROptimizer(_irProgram, serverMode), serverMode);
     }
 
     public void interpret() {
@@ -117,13 +123,18 @@ public class Interpreter implements IRVisitor {
     public void visit(IRCall inst) {
         if (irProgram.funcMap.containsKey(inst.name)) {
 //            System.err.println("@calling function: " + inst.name);
-            ArrayList<Integer> args = new ArrayList<>();
-            for (var arg : inst.arguments) {
-                args.add(VM.getValue(arg));
+            if (functionCompiler.getCompiledFunctionString(inst.name) == null) {
+                int ret = VM.callRavelFunction(inst, true);
+                VM.writeValue(ret, inst.dest);
+            } else {
+                ArrayList<Integer> args = new ArrayList<>();
+                for (var arg : inst.arguments) {
+                    args.add(VM.getValue(arg));
+                }
+                VM.runFunc(irProgram.funcMap.get(inst.name), inst.nextInst, inst.dest, args);
+                nextInst = firstInst(irProgram.funcMap.get(inst.name));
+                profiler.updateCounter(irProgram.funcMap.get(inst.name));
             }
-            VM.runFunc(irProgram.funcMap.get(inst.name), inst.nextInst, inst.dest, args);
-            hasVisited.add(VM.getCurFrame());
-            nextInst = firstInst(irProgram.funcMap.get(inst.name));
         } else { // this is a builtin function
             switch (inst.name) {
                 case "print" -> VM._print(inst.arguments.get(0));
@@ -237,7 +248,7 @@ public class Interpreter implements IRVisitor {
 
     @Override
     public void visit(IRPhi inst) {
-
+        VM.writeValue(VM.getValue(inst.block_value.get(VM.getLastBlock())), inst.dest);
     }
 
     @Override
@@ -284,10 +295,12 @@ public class Interpreter implements IRVisitor {
             visit((IRBinOp) inst);
         } else if (inst instanceof IRBranch) {
             visit((IRBranch) inst);
+            VM.setLastBlock(inst.parentBlock);
         } else if (inst instanceof IRCall) {
             visit((IRCall) inst);
         } else if (inst instanceof IRJump) {
             visit((IRJump) inst);
+            VM.setLastBlock(inst.parentBlock);
         } else if (inst instanceof IRLoad) {
             visit((IRLoad) inst);
         } else if (inst instanceof IRIcmp) {

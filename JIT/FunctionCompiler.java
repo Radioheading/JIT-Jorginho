@@ -61,11 +61,19 @@ public class FunctionCompiler {
         return true;
     }
 
+    public boolean canCompile(String name) {
+        return callGraphContruct.canJIT(name);
+    }
+
     public String compileFunction(Function function) {
+        if (doneFuncs.contains(function.name)) {
+            return compiledFuncsString.get(function.name);
+        }
+
         String name = function.name;
 
-        if (!checkAllCompiled(function)) {
-            throw new RuntimeException("Not all callees are compiled");
+        if (!callGraphContruct.canJIT(function.name) || !checkAllCompiled(function)) {
+            return null; // can't JIT because of recursive function or not all callees are compiled
         }
 
         ASMFunction asmFunction = getCompiledFunction(name);
